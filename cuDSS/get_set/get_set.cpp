@@ -67,45 +67,49 @@
         x is the (dense) solution vector (or matrix).
 */
 
-#define CUDSS_EXAMPLE_FREE \
-    do { \
-        free(csr_offsets_h); \
-        free(csr_columns_h); \
-        free(csr_values_h); \
-        free(x_values_h); \
-        free(b_values_h); \
-        free(diag_h);       \
+#define CUDSS_EXAMPLE_FREE       \
+    do                           \
+    {                            \
+        free(csr_offsets_h);     \
+        free(csr_columns_h);     \
+        free(csr_values_h);      \
+        free(x_values_h);        \
+        free(b_values_h);        \
+        free(diag_h);            \
         cudaFree(csr_offsets_d); \
         cudaFree(csr_columns_d); \
-        cudaFree(csr_values_d); \
-        cudaFree(x_values_d); \
-        cudaFree(b_values_d); \
-        cudaFree(diag_d); \
-    } while(0);
+        cudaFree(csr_values_d);  \
+        cudaFree(x_values_d);    \
+        cudaFree(b_values_d);    \
+        cudaFree(diag_d);        \
+    } while (0);
 
-#define CUDA_CALL_AND_CHECK(call, msg) \
-    do { \
-        cuda_error = call; \
-        if (cuda_error != cudaSuccess) { \
+#define CUDA_CALL_AND_CHECK(call, msg)                                                               \
+    do                                                                                               \
+    {                                                                                                \
+        cuda_error = call;                                                                           \
+        if (cuda_error != cudaSuccess)                                                               \
+        {                                                                                            \
             printf("Example FAILED: CUDA API returned error = %d, details: " #msg "\n", cuda_error); \
-            CUDSS_EXAMPLE_FREE; \
-            return -1; \
-        } \
-    } while(0);
+            CUDSS_EXAMPLE_FREE;                                                                      \
+            return -1;                                                                               \
+        }                                                                                            \
+    } while (0);
 
-
-#define CUDSS_CALL_AND_CHECK(call, status, msg) \
-    do { \
-        status = call; \
-        if (status != CUDSS_STATUS_SUCCESS) { \
+#define CUDSS_CALL_AND_CHECK(call, status, msg)                                                                      \
+    do                                                                                                               \
+    {                                                                                                                \
+        status = call;                                                                                               \
+        if (status != CUDSS_STATUS_SUCCESS)                                                                          \
+        {                                                                                                            \
             printf("Example FAILED: CUDSS call ended unsuccessfully with status = %d, details: " #msg "\n", status); \
-            CUDSS_EXAMPLE_FREE; \
-            return -2; \
-        } \
-    } while(0);
+            CUDSS_EXAMPLE_FREE;                                                                                      \
+            return -2;                                                                                               \
+        }                                                                                                            \
+    } while (0);
 
-
-int main (int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
     printf("---------------------------------------------------------\n");
     printf("cuDSS example: solving a real linear 5x5 system\n"
            "with a symmetric positive-definite matrix\n"
@@ -115,7 +119,7 @@ int main (int argc, char *argv[]) {
     int major, minor, patch;
     cudssGetProperty(MAJOR_VERSION, &major);
     cudssGetProperty(MINOR_VERSION, &minor);
-    cudssGetProperty(PATCH_LEVEL,   &patch);
+    cudssGetProperty(PATCH_LEVEL, &patch);
     printf("CUDSS Version (Major,Minor,PatchLevel): %d.%d.%d\n", major, minor, patch);
 
     cudaError_t cuda_error = cudaSuccess;
@@ -140,16 +144,17 @@ int main (int argc, char *argv[]) {
     /* Allocate host memory for the sparse input matrix A,
        right-hand side x and solution b*/
 
-    csr_offsets_h = (int*)malloc((n + 1) * sizeof(int));
-    csr_columns_h = (int*)malloc(nnz * sizeof(int));
-    csr_values_h = (double*)malloc(nnz * sizeof(double));
-    x_values_h = (double*)malloc(nrhs * n * sizeof(double));
-    b_values_h = (double*)malloc(nrhs * n * sizeof(double));
+    csr_offsets_h = (int *)malloc((n + 1) * sizeof(int));
+    csr_columns_h = (int *)malloc(nnz * sizeof(int));
+    csr_values_h = (double *)malloc(nnz * sizeof(double));
+    x_values_h = (double *)malloc(nrhs * n * sizeof(double));
+    b_values_h = (double *)malloc(nrhs * n * sizeof(double));
 
-    diag_h = (double*)malloc(n * sizeof(double));
+    diag_h = (double *)malloc(n * sizeof(double));
 
-    if (!csr_offsets_h || ! csr_columns_h || !csr_values_h ||
-        !x_values_h || !b_values_h || !diag_h) {
+    if (!csr_offsets_h || !csr_columns_h || !csr_values_h ||
+        !x_values_h || !b_values_h || !diag_h)
+    {
         printf("Error: host memory allocation failed\n");
         return -1;
     }
@@ -164,16 +169,22 @@ int main (int argc, char *argv[]) {
     csr_offsets_h[i++] = 8;
 
     i = 0;
-    csr_columns_h[i++] = 0; csr_columns_h[i++] = 2;
-    csr_columns_h[i++] = 1; csr_columns_h[i++] = 2;
-    csr_columns_h[i++] = 2; csr_columns_h[i++] = 4;
+    csr_columns_h[i++] = 0;
+    csr_columns_h[i++] = 2;
+    csr_columns_h[i++] = 1;
+    csr_columns_h[i++] = 2;
+    csr_columns_h[i++] = 2;
+    csr_columns_h[i++] = 4;
     csr_columns_h[i++] = 3;
     csr_columns_h[i++] = 4;
 
     i = 0;
-    csr_values_h[i++] = 4.0; csr_values_h[i++] = 1.0;
-    csr_values_h[i++] = 3.0; csr_values_h[i++] = 2.0;
-    csr_values_h[i++] = 5.0; csr_values_h[i++] = 1.0;
+    csr_values_h[i++] = 4.0;
+    csr_values_h[i++] = 1.0;
+    csr_values_h[i++] = 3.0;
+    csr_values_h[i++] = 2.0;
+    csr_values_h[i++] = 5.0;
+    csr_values_h[i++] = 1.0;
     csr_values_h[i++] = 1.0;
     csr_values_h[i++] = 2.0;
 
@@ -203,13 +214,17 @@ int main (int argc, char *argv[]) {
 
     /* Copy host memory to device for A and b */
     CUDA_CALL_AND_CHECK(cudaMemcpy(csr_offsets_d, csr_offsets_h, (n + 1) * sizeof(int),
-                        cudaMemcpyHostToDevice), "cudaMemcpy for csr_offsets");
+                                   cudaMemcpyHostToDevice),
+                        "cudaMemcpy for csr_offsets");
     CUDA_CALL_AND_CHECK(cudaMemcpy(csr_columns_d, csr_columns_h, nnz * sizeof(int),
-                        cudaMemcpyHostToDevice), "cudaMemcpy for csr_columns");
+                                   cudaMemcpyHostToDevice),
+                        "cudaMemcpy for csr_columns");
     CUDA_CALL_AND_CHECK(cudaMemcpy(csr_values_d, csr_values_h, nnz * sizeof(double),
-                        cudaMemcpyHostToDevice), "cudaMemcpy for csr_values");
+                                   cudaMemcpyHostToDevice),
+                        "cudaMemcpy for csr_values");
     CUDA_CALL_AND_CHECK(cudaMemcpy(b_values_d, b_values_h, nrhs * n * sizeof(double),
-                        cudaMemcpyHostToDevice), "cudaMemcpy for b_values");
+                                   cudaMemcpyHostToDevice),
+                        "cudaMemcpy for b_values");
 
     cudaStream_t stream = NULL;
     CUDA_CALL_AND_CHECK(cudaStreamCreate(&stream), "cudaStreamCreate");
@@ -232,7 +247,8 @@ int main (int argc, char *argv[]) {
     /* (optional) Setting algorithmic knobs */
     cudssAlgType_t reorder_alg = CUDSS_ALG_DEFAULT;
     CUDSS_CALL_AND_CHECK(cudssConfigSet(solverConfig, CUDSS_CONFIG_REORDERING_ALG,
-                         &reorder_alg, sizeof(cudssAlgType_t)), status, "cudssSolverSet");
+                                        &reorder_alg, sizeof(cudssAlgType_t)),
+                         status, "cudssSolverSet");
 
     /* Create matrix objects for the right-hand side b and solution x (as dense matrices). */
     cudssMatrix_t x, b;
@@ -240,34 +256,38 @@ int main (int argc, char *argv[]) {
     int64_t nrows = n, ncols = n;
     int ldb = ncols, ldx = nrows;
     CUDSS_CALL_AND_CHECK(cudssMatrixCreateDn(&b, ncols, nrhs, ldb, b_values_d, CUDA_R_64F,
-                         CUDSS_LAYOUT_COL_MAJOR), status, "cudssMatrixCreateDn for b");
+                                             CUDSS_LAYOUT_COL_MAJOR),
+                         status, "cudssMatrixCreateDn for b");
     CUDSS_CALL_AND_CHECK(cudssMatrixCreateDn(&x, nrows, nrhs, ldx, x_values_d, CUDA_R_64F,
-                         CUDSS_LAYOUT_COL_MAJOR), status, "cudssMatrixCreateDn for x");
+                                             CUDSS_LAYOUT_COL_MAJOR),
+                         status, "cudssMatrixCreateDn for x");
 
     /* Create a matrix object for the sparse input matrix. */
     cudssMatrix_t A;
-    cudssMatrixType_t mtype     = CUDSS_MTYPE_SYMMETRIC;
+    cudssMatrixType_t mtype = CUDSS_MTYPE_SYMMETRIC;
     cudssMatrixViewType_t mview = CUDSS_MVIEW_UPPER;
-    cudssIndexBase_t base       = CUDSS_BASE_ZERO;
+    cudssIndexBase_t base = CUDSS_BASE_ZERO;
     CUDSS_CALL_AND_CHECK(cudssMatrixCreateCsr(&A, nrows, ncols, nnz, csr_offsets_d, NULL,
-                         csr_columns_d, csr_values_d, CUDA_R_32I, CUDA_R_64F, mtype, mview,
-                         base), status, "cudssMatrixCreateCsr");
+                                              csr_columns_d, csr_values_d, CUDA_R_32I, CUDA_R_64F, mtype, mview,
+                                              base),
+                         status, "cudssMatrixCreateCsr");
 
     /* Symbolic factorization */
     CUDSS_CALL_AND_CHECK(cudssExecute(handle, CUDSS_PHASE_ANALYSIS, solverConfig, solverData,
-                         A, x, b), status, "cudssExecute for analysis");
+                                      A, x, b),
+                         status, "cudssExecute for analysis");
 
     size_t sizeWritten;
     int row_perm[5];
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_PERM_REORDER_ROW, &row_perm,
-                         sizeof(row_perm), &sizeWritten),
+                                      sizeof(row_perm), &sizeWritten),
                          status, "cudssDataGet for row reorder perm");
     for (int i = 0; i < n; i++)
         printf("row reorder perm[%d] = %d\n", i, row_perm[i]);
 
     int col_perm[5];
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_PERM_REORDER_COL, &col_perm,
-                         sizeof(col_perm), &sizeWritten),
+                                      sizeof(col_perm), &sizeWritten),
                          status, "cudssDataGet for col reorder perm");
     for (int i = 0; i < n; i++)
         printf("col reorder perm[%d] = %d\n", i, col_perm[i]);
@@ -275,18 +295,19 @@ int main (int argc, char *argv[]) {
     int64_t memory_estimates[16] = {0};
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_MEMORY_ESTIMATES,
                                       &memory_estimates, sizeof(memory_estimates), &sizeWritten),
-                              status, "cudssDataGet for the memory estimates");
+                         status, "cudssDataGet for the memory estimates");
     printf("memory estimates: device: %ld (stable) %ld (peak)\n",
-            memory_estimates[0], memory_estimates[1]);
+           memory_estimates[0], memory_estimates[1]);
     printf("memory estimates: host: %ld (stable) %ld (peak)\n",
-            memory_estimates[2], memory_estimates[3]);
+           memory_estimates[2], memory_estimates[3]);
     // (would only make sense for the hybrid memory mode)
-    //printf("memory estimates: hybrid peak: %ld = (GPU) %ld (CPU)\n",
+    // printf("memory estimates: hybrid peak: %ld = (GPU) %ld (CPU)\n",
     //        memory_estimates[4], memory_estimates[5]);
 
     /* Factorization */
     CUDSS_CALL_AND_CHECK(cudssExecute(handle, CUDSS_PHASE_FACTORIZATION, solverConfig,
-                         solverData, A, x, b), status, "cudssExecute for factor");
+                                      solverData, A, x, b),
+                         status, "cudssExecute for factor");
 
     /* (optional) Recommended: getting runtime errors from device side
         Note: cudssDataGet is a synchronous API.
@@ -295,24 +316,28 @@ int main (int argc, char *argv[]) {
     */
     int info;
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_INFO, &info,
-                         sizeof(info), &sizeWritten), status, "cudssDataGet for info");
+                                      sizeof(info), &sizeWritten),
+                         status, "cudssDataGet for info");
     printf("cuDSS info = %d\n", info);
 
     int npivots;
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_NPIVOTS, &npivots,
-                         sizeof(npivots), &sizeWritten), status, "cudssDataGet for npivots");
+                                      sizeof(npivots), &sizeWritten),
+                         status, "cudssDataGet for npivots");
     printf("cuDSS npivots = %d\n", npivots);
 
     int inertia[2];
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_INERTIA, &inertia,
-                         sizeof(inertia), &sizeWritten), status, "cudssDataGet for inertia");
+                                      sizeof(inertia), &sizeWritten),
+                         status, "cudssDataGet for inertia");
     printf("cuDSS inertia = %d %d\n", inertia[0], inertia[1]);
 
     /* (optional) Recommended: getting data back when the user does not know the size
         Note: cudssDataGet is a synchronous API.
     */
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_LU_NNZ, NULL, 0,
-                         &sizeWritten), status, "cudssDataGet size request for lu_nnz");
+                                      &sizeWritten),
+                         status, "cudssDataGet size request for lu_nnz");
     printf("cuDSS requests %zu bytes for returning the #nnz in the factors\n", sizeWritten);
     /* Note: per cuDSS documentation, CUDSS_DATA_LU_NNZ is always returned as a
        pointer to int64_t.
@@ -322,46 +347,51 @@ int main (int argc, char *argv[]) {
     */
     int64_t lu_nnz;
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_LU_NNZ, &lu_nnz,
-                         sizeof(int64_t), NULL), status, "cudssDataGet for lu_nnz");
+                                      sizeof(int64_t), NULL),
+                         status, "cudssDataGet for lu_nnz");
     printf("cuDSS #nnz in LU = %ld\n", lu_nnz);
 
     /*  Note: currently these features are only supported for CUDSS_ALG_1 and CUDSS_ALG_2
         reordering algorithms. */
-    if (reorder_alg == CUDSS_ALG_1 || reorder_alg == CUDSS_ALG_2) {
+    if (reorder_alg == CUDSS_ALG_1 || reorder_alg == CUDSS_ALG_2)
+    {
         int row_final_perm[5];
         CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_PERM_ROW, &row_final_perm,
-                             sizeof(row_final_perm), &sizeWritten),
+                                          sizeof(row_final_perm), &sizeWritten),
                              status, "cudssDataGet for row final perm");
         for (int i = 0; i < n; i++)
             printf("final row perm[%d] = %d\n", i, row_final_perm[i]);
 
         int col_final_perm[5];
         CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_PERM_COL, &col_final_perm,
-                             sizeof(col_final_perm), &sizeWritten),
+                                          sizeof(col_final_perm), &sizeWritten),
                              status, "cudssDataGet for col final perm");
         for (int i = 0; i < n; i++)
             printf("final col perm[%d] = %d\n", i, col_final_perm[i]);
     }
 
-
     /* (optional) Getting data back when the user knows the size
         Note: cudssDataGet is a synchronous API.
     */
     CUDSS_CALL_AND_CHECK(cudssDataGet(handle, solverData, CUDSS_DATA_DIAG, diag_d,
-                         n*sizeof(double), &sizeWritten), status, "cudssDataGet for diag");
+                                      n * sizeof(double), &sizeWritten),
+                         status, "cudssDataGet for diag");
     CUDA_CALL_AND_CHECK(cudaMemcpy(diag_h, diag_d, nrhs * n * sizeof(double),
-                        cudaMemcpyDeviceToHost), "cudaMemcpy for diag");
+                                   cudaMemcpyDeviceToHost),
+                        "cudaMemcpy for diag");
     for (int i = 0; i < 5; i++)
         printf("diag[%d] = %f\n", i, diag_h[i]);
 
     int iter_ref_nsteps = 2;
     CUDSS_CALL_AND_CHECK(cudssConfigSet(solverConfig, CUDSS_CONFIG_IR_N_STEPS,
-                         &iter_ref_nsteps, sizeof(iter_ref_nsteps)), status,
+                                        &iter_ref_nsteps, sizeof(iter_ref_nsteps)),
+                         status,
                          "cudssSolverSet for IR nsteps");
 
     /* Solving */
     CUDSS_CALL_AND_CHECK(cudssExecute(handle, CUDSS_PHASE_SOLVE, solverConfig, solverData,
-                         A, x, b), status, "cudssExecute for solve");
+                                      A, x, b),
+                         status, "cudssExecute for solve");
 
     /* Destroying opaque objects, matrix wrappers and the cuDSS library handle */
     CUDSS_CALL_AND_CHECK(cudssMatrixDestroy(A), status, "cudssMatrixDestroy for A");
@@ -375,13 +405,15 @@ int main (int argc, char *argv[]) {
 
     /* Print the solution and compare against the exact solution */
     CUDA_CALL_AND_CHECK(cudaMemcpy(x_values_h, x_values_d, nrhs * n * sizeof(double),
-                        cudaMemcpyDeviceToHost), "cudaMemcpy for x_values");
+                                   cudaMemcpyDeviceToHost),
+                        "cudaMemcpy for x_values");
 
     int passed = 1;
-    for (int i = 0; i < n; i++) {
-        printf("x[%d] = %1.4f expected %1.4f\n", i, x_values_h[i], double(i+1));
+    for (int i = 0; i < n; i++)
+    {
+        printf("x[%d] = %1.4f expected %1.4f\n", i, x_values_h[i], double(i + 1));
         if (fabs(x_values_h[i] - (i + 1)) > 2.e-15)
-          passed = 0;
+            passed = 0;
     }
 
     /* Release the data allocated on the user side */
