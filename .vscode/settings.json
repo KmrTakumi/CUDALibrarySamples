@@ -1,0 +1,7 @@
+{
+    "C_Cpp.default.includePath": [
+        "${workingspaceFolder}",
+        "/usr/local/cuda/include",
+        "/usr/include/libcudss/12"
+    ]
+}
